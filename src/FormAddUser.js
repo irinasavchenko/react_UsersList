@@ -11,14 +11,12 @@ class FormAddUser extends Component {
     this.state = {
       name: ''
     }
-    this.handleInputChange = this.handleInputChange.bind(this)
-    this.handleSubmitAdd = this.handleSubmitAdd.bind(this)
   }
 
-  handleInputChange (event) {
+  handleInputChange = (event) => {
     console.log('Input has been changed', event.target.value)
     this.setState({
-      name: event.target.value
+      name: event.target.value,
     })
   }
 
@@ -36,9 +34,8 @@ class FormAddUser extends Component {
     </div>
   }
 
-  handleSubmitAdd (event) {
+  handleSubmitAdd = (event) => {
     event.preventDefault()
-    console.log(this.state.name)
     return this.props.onHandleSubmitCallback(this.state.name)
   }
 }

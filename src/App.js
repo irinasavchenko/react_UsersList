@@ -8,7 +8,14 @@ import {
   ListGroup
 } from 'react-bootstrap'
 import UserItem from './UserItem'
+import {
+  deleteUser,
+  fetchUsers,
+  createUser,
+  editUser
+} from './users_services'
 import FormAddUser from './FormAddUser'
+// import EditUser from './FormEditUser'
 
 const API_URL = 'http://0.0.0.0:3001'
 
@@ -19,30 +26,23 @@ class App extends Component {
     this.state = {
       users: []
     }
-
-    this.fetchListOfUsers = this.fetchListOfUsers.bind(this)
-    this.componentWillMount = this.componentWillMount.bind(this)
-    this.deleteUser = this.deleteUser.bind(this)
-    this.handleSubmit = this.handleSubmit.bind(this)
   }
 
-  fetchListOfUsers () {
-    return axios
-      .get(`${API_URL}/users`)
-      .then(response => {
+  fetchListOfUsers = () => {
+    return fetchUsers()
+      .then(users => {
         this.setState({
-          users: response.data
+          users: users
         })
       })
   }
 
-  componentWillMount () {
+  componentWillMount = () => {
     this.fetchListOfUsers()
   }
 
-  deleteUser (deletedUser) {
-    return axios
-      .delete(`${API_URL}/users/${deletedUser._id}`)
+  deleteOneUser = (deletedUser) => {
+    return deleteUser(deletedUser._id)
       .then(() => {
         const userListWithoutDeletdUser = this.state.users.filter(user => user._id !== deletedUser._id)
 
@@ -52,14 +52,30 @@ class App extends Component {
       })
   }
 
-  handleSubmit (name) {
-    console.log('Form has been submitted')
-    return axios
-      .post(`${API_URL}/users`, { name })
-      .then(res => {
-        console.log(res)
-        console.log(res.data)
-        const usersWithAddUser = this.state.users.concat(res.data)
+  updateUser = (updatedUser) => {
+    return editUser(updatedUser)
+      .then(() => {
+        const indexOfUpdatedUser = this.state.users.findIndex((user) => {
+         if (user._id === updatedUser._id)
+           return true
+        })
+
+        this.state.users.splice(indexOfUpdatedUser,1,updatedUser)
+        this.setState({
+          users: this.state.users
+        })
+      })
+  }
+
+  handleSubmit = (userName) => {
+    const newUser = {
+      name: userName
+    }
+
+    return createUser(newUser)
+      .then(createdUser => {
+        console.log(createdUser)
+        const usersWithAddUser = this.state.users.concat(createdUser)
         this.setState({
           users: usersWithAddUser
         })
@@ -78,17 +94,13 @@ class App extends Component {
 
         <Modal.Body>
           <ListGroup>
-            {users.map(user => <UserItem user={user} onUserDeleteCallback={this.deleteUser} />)}
+            {users.map(user => <UserItem user={user} onUserDeleteCallback={this.deleteOneUser} onUserEditCallback={this.updateUser}/>)}
           </ListGroup>
           <div className='addUser'>
             <FormAddUser onHandleSubmitCallback={this.handleSubmit} />
           </div>
         </Modal.Body>
 
-        <Modal.Footer>
-          <Button variant='secondary'>Close</Button>
-          <Button variant='primary'>Save changes</Button>
-        </Modal.Footer>
       </Modal.Dialog>
 
     </Container>
